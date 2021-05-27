@@ -16,20 +16,25 @@ public class BankStatementReader {
     private static final String BANK_STATEMENT_DIR = "D:\\Onedrive\\Documents\\Finances\\2021\\Bank Statements";
 
     public List<QifData> readAllFiles() {
-        String[] files = Paths.get(BANK_STATEMENT_DIR).toFile().list(new PatternFilenameFilter("*.pdf"));
+        String[] files = getPdfFileNames();
         return Stream.of(files).map(f -> toQifData(f)).collect(Collectors.toList());
+    }
+
+    String[] getPdfFileNames() {
+        return Paths.get(BANK_STATEMENT_DIR).toFile().list(new PatternFilenameFilter(".*pdf$"));
     }
 
     private QifData toQifData(String fileName) {
 
         try {
-            PDDocument document = PDDocument.load(new File(fileName));
+            PDDocument document = PDDocument.load(new File(BANK_STATEMENT_DIR, fileName));
             if (!document.isEncrypted()) {
                 PDFTextStripper stripper = new PDFTextStripper();
                 String text = stripper.getText(document);
                 System.out.println("Text:" + text);
             }
             document.close();
+            System.exit(1);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
