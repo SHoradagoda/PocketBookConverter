@@ -12,7 +12,7 @@ class CreditStatementConverterTest {
 
     @Test
     public void readsPdf() {
-        List<QifData> qifDataList = converter.readAllFiles(CreditStatementConverter.CREDIT_STATEMENT_DIR);
+        List<QifData> qifDataList = converter.readPdfFiles(CreditStatementConverter.CREDIT_STATEMENT_DIR);
         assertNotNull(qifDataList);
 
     }

@@ -1,12 +1,38 @@
 package org.sid;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
+
+import java.io.File;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
+import java.util.stream.Stream;
 
-public class QifReader {
+public class CreditCardStatementReader {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    public QifEntry toQifEntry(String line) {
+
+    public QifData fileToQifData(String dir,String fileName) {
+        final QifData qifData = new QifData(fileName.replace(".pdf", ".qif"));
+        try {
+            PDDocument document = PDDocument.load(new File( dir, fileName));
+            if (!document.isEncrypted()) {
+                PDFTextStripper stripper = new PDFTextStripper();
+                String text = stripper.getText(document);
+                Stream.of(text.split("\n"))
+                        .map(l -> toQifEntry(l))
+                        .filter(Objects::nonNull)
+                        .forEach(q -> qifData.addQifEntry(q));
+                document.close();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return qifData;
+    }
+
+    private QifEntry toQifEntry(String line) {
         LocalDate date = readTransactionDate(line);
         if ( date == null || line.contains("OPENING BALANCE") || line.contains("CLOSING BALANCE")) {
             return null;
